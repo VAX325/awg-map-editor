@@ -1,0 +1,11 @@
+{
+	"Name": "base_ent",
+	"TickAction": null,
+
+	"Trigger":
+		{
+			"isTrigger": false,
+			"OnEnter": null,
+			"OnExit": null
+		}
+}

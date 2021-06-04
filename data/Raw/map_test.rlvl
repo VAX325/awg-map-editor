@@ -1,0 +1,17 @@
+#OBJECTS
+0 WorldRectangleRigid obstacles_gr 0 500 8192 64
+1 WorldRectangleRigid obstacles_gr 850 700 200 200
+2 WorldRectangleRigid obstacles_gr -500 575 800 50
+3 WorldRectangleRigid obstacles_gr 1600 1200 50 900
+4 WorldRectangleRigid obstacles_gr 2000 1000 50 900
+5 MetalCrate obstacles_gr 700 800
+6 WorldRectangleSensor background_near_gr 100 600 32 32 4
+7 WorldRectangleSensor background_near_gr 1300 600 2600 900 6
+#LIGHTS
+8 FireLight none 1400 700 16 RoundFlat 1 fire
+9 LightSource none 800 700 32 Round 1
+10 LightSource none 600 700 18 Round 1
+11 LightSource none 900 700 18 Round 1
+#PARAMS
+[2:bfriction:0.0:float]
+[6:texture:LevelOne/glass:str]

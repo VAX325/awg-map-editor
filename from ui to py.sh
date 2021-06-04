@@ -1,0 +1,1 @@
+pyuic5 map_editor.ui -o map_editor.py

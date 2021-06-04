@@ -1,0 +1,1 @@
+python -m PyQt5.uic.pyuic -x map_editor.ui -o map_editor.py
