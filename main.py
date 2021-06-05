@@ -1,13 +1,16 @@
 import sys
+
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
-from PyQt5 import Qt
 
+# UI
 import map_editor
 
+# Loader
 import MapLoader
 
+# Main class
 class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -43,6 +46,11 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
         self.groups = []
         self.elements = []
 
+        self.scale = 1.0
+
+        self.scale_plus.clicked.connect(self.scale_plus_action)
+        self.scale_minus.clicked.connect(self.scale_minus_action)
+
         #END
         #timer = QtCore.QTimer(self, timeout=self.draw, interval=100)
         #timer.start()
@@ -62,6 +70,72 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
             if isinstance(children, dict):
                 self.groups.append([child ,child_item])
                 self.populateTree(children[child], child_item)
+
+    def change_current_action(self, action):
+        self.CurrentAction.setText(action)
+
+    def change_current_action_procent(self, procent):
+        self.CurrentActionProgress.setValue(procent)
+
+    def current_action_done(self):
+        self.CurrentAction.setText("None")
+
+    def scale_plus_action(self):
+        if self.scale > 0.9:
+            self.scale = 1
+        else:
+            self.scale = self.scale + 0.1
+        self.scale = round(self.scale, 1)
+        self.apply_scale()
+
+    def scale_minus_action(self):
+        if self.scale < 0.2:
+            self.scale = 0.1
+        else:
+            self.scale = self.scale - 0.1
+        self.scale = round(self.scale, 1)
+        self.apply_scale()
+
+    def apply_scale(self):
+        for element in self.elements:
+            # element[1][0]  # Label
+            # element[1][1]  # Pixmap
+
+            # element[2][0][0] - orig x
+            # element[2][0][1] - curr x
+
+            # element[2][1][0] - orig y
+            # element[2][1][1] - curr y
+
+            # element[2][2][0] - orig w
+            # element[2][2][1] - curr w
+
+            # element[2][3][0] - orig h
+            # element[2][3][1] - curr h
+
+            x = element[2][0][0] * self.scale
+            y = element[2][1][0] * self.scale
+            w = element[2][2][0] * self.scale
+            h = element[2][3][0] * self.scale
+
+            element[2][0][1] = x
+            element[2][1][1] = y
+            element[2][2][1] = w
+            element[2][3][1] = h
+
+            pixmap = element[1][1].scaled(w, h)
+            element[1][0].setPixmap(pixmap)
+            element[1][0].resize(w, h)
+            element[1][0].move(x, y)
+            element[1][0].show()
+
+        if len(self.elements) >= 1:
+            width = self._update_width_area()
+            height = self._update_height_area()
+
+            self.workspace_background.resize(width, height)
+
+        self.scale_label.setText("Scale is: {0}".format(self.scale))
 
     def onSelectionChanged(self, *args):
         for sel in self.EntityList.selectedIndexes():
@@ -103,27 +177,33 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
     def add_image_to_workspace(self, image, x, y, w, h, id):
         label = QtWidgets.QLabel(self.Workspace)
         pixmap = QtGui.QPixmap(image)
-        pixmap = pixmap.scaled(w, h)
+
+        _w = w * self.scale
+        _h = h * self.scale
+        _x = x * self.scale
+        _y = y * self.scale
+
+        pixmap = pixmap.scaled(_w, _h)
         label.setPixmap(pixmap)
-        label.resize(w, h)
-        label.move(x, y)
+        label.resize(_w, _h)
+        label.move(_x, _y)
         label.show()
 
-        self.elements.append([id, label, [x, y, w, h]])
+        self.elements.append([id, (label, pixmap), ([x, _x], [y, _y], [w, _w], [h, _h])])
         self.objs.append(label)
 
     def OpenRaw(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Select raw map file...", "","Raw Map Files (*.rlvl);;All Files (*)", options=options)
-        if fileName:
-            self.my_map, self.params = MapLoader.LoadMap(fileName)
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Select raw map file...", "","Raw Map Files (*.rlvl);;All Files (*)", options=options)
+        if filename:
+            self.my_map, self.params = MapLoader.LoadMap(filename)
 
         for element in self.my_map:
-            lst = { element[1][2]:{ (element[1][0] + element[1][1]) } }
-            self.populateTree(lst , self.model.invisibleRootItem())
+            lst = {element[1][2]: {(element[1][0] + element[1][1])}}
+            self.populateTree(lst, self.model.invisibleRootItem())
 
-            if element[0] == 1: # WorldRectangleRigid
+            if element[0] == 1:  # WorldRectangleRigid
                 self.add_image_to_workspace("data/Textures/r_devs_1.png", int(element[1][3]), int(element[1][4]), int(element[1][5]), int(element[1][6]), (element[1][0] + element[1][1]))
 
         width = self._update_width_area()
@@ -151,8 +231,9 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
         self.Workspace.setMinimumHeight(max(new_height))
         return max(new_height)
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     window = MapEditor()
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec_())
