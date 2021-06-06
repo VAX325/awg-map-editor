@@ -75,9 +75,11 @@ def GetElementType(element):
             return 1
         elif element[1] == "MetalCrate":
             return 2
-        elif element[1] == "WorldRectangleSensor":
+        elif element[1] == "WoodenCrate":
             return 3
-        elif element[1] == "FireLight" or element[1] == "LightSource":
+        elif element[1] == "WorldRectangleSensor":
             return 4
+        elif element[1] == "FireLight" or element[1] == "LightSource":
+            return 5
     return 0
             

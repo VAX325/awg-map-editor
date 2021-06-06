@@ -37,19 +37,28 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
         self.scroll_area.show()
 
         self.workspace_background = QtWidgets.QLabel(self.Workspace)
-        pixmap_test = QtGui.QPixmap("data/Textures/background.jpeg")
-        self.workspace_background.setPixmap(pixmap_test)
+        self.workspace_background_pixmap = QtGui.QPixmap("data/Textures/background.jpeg")
+        self.workspace_background.setPixmap(self.workspace_background_pixmap)
         self.workspace_background.move(0, 0)
+        self.workspace_background_pixmap = self.workspace_background_pixmap.scaled(1366*10, 768*10)
+        self.workspace_background.setPixmap(self.workspace_background_pixmap)
+        self.workspace_background.resize(1366*10, 768*10)
 
         #self.labNpix.append((pixmap_test ,label))
 
         self.groups = []
         self.elements = []
 
-        self.scale = 1.0
+        self.scale = 0.5
+        self.scale_label.setText("Scale is: {0}".format(self.scale))
 
         self.scale_plus.clicked.connect(self.scale_plus_action)
         self.scale_minus.clicked.connect(self.scale_minus_action)
+
+        self.Workspace.setMinimumWidth(1366 * 10)
+        self.Workspace.setMinimumHeight(768 * 10)
+
+       # self.Workspace.paintEvent = self.paintEvent
 
         #END
         #timer = QtCore.QTimer(self, timeout=self.draw, interval=100)
@@ -81,8 +90,8 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
         self.CurrentAction.setText("None")
 
     def scale_plus_action(self):
-        if self.scale > 0.9:
-            self.scale = 1
+        if self.scale > 1.4:
+            self.scale = 1.5
         else:
             self.scale = self.scale + 0.1
         self.scale = round(self.scale, 1)
@@ -113,8 +122,8 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
             # element[2][3][0] - orig h
             # element[2][3][1] - curr h
 
-            x = element[2][0][0] * self.scale
-            y = element[2][1][0] * self.scale
+            x = element[2][0][0] * self.scale + (1366*10 / 2)
+            y = element[2][1][0] * self.scale + (768*10 / 2)
             w = element[2][2][0] * self.scale
             h = element[2][3][0] * self.scale
 
@@ -129,11 +138,11 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
             element[1][0].move(x, y)
             element[1][0].show()
 
-        if len(self.elements) >= 1:
-            width = self._update_width_area()
-            height = self._update_height_area()
+        #if len(self.elements) >= 1:
+        #    width = self._update_width_area()
+        #    height = self._update_height_area()
 
-            self.workspace_background.resize(width, height)
+        #    self.workspace_background.resize(width, height)
 
         self.scale_label.setText("Scale is: {0}".format(self.scale))
 
@@ -180,8 +189,8 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
 
         _w = w * self.scale
         _h = h * self.scale
-        _x = x * self.scale
-        _y = y * self.scale
+        _x = x * self.scale + (1366*10 / 2)
+        _y = y * self.scale + (768*10 / 2)
 
         pixmap = pixmap.scaled(_w, _h)
         label.setPixmap(pixmap)
@@ -205,11 +214,19 @@ class MapEditor(QtWidgets.QMainWindow, map_editor.Ui_MainWindow):
 
             if element[0] == 1:  # WorldRectangleRigid
                 self.add_image_to_workspace("data/Textures/r_devs_1.png", int(element[1][3]), int(element[1][4]), int(element[1][5]), int(element[1][6]), (element[1][0] + element[1][1]))
+            elif element[0] == 2:
+                w = 128
+                h = 128
+                self.add_image_to_workspace("data/Textures/r_devs_1.png", int(element[1][3]), int(element[1][4]), h, w, (element[1][0] + element[1][1]))
 
-        width = self._update_width_area()
-        height = self._update_height_area()
+        #width = self._update_width_area()
+        #height = self._update_height_area()
 
-        self.workspace_background.resize(width, height)
+        #self.workspace_background.resize(width, height)
+
+        #Refocusing
+        self.scroll_area.horizontalScrollBar().setValue(1366*10/2)
+        self.scroll_area.verticalScrollBar().setValue(768*10/2)
 
     def _calculate_width(self, widget):
         widget_width = widget.sizeHint().width()
